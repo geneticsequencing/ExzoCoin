@@ -1,0 +1,68 @@
+---
+-
+  name: Update Exzocoin binary
+  hosts:
+    - all
+  become: yes
+  tasks:
+    ## update & upgrade system
+    - name: Update & upgrade system
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    ## stop exzocoin service
+    - name: Stop exzocoin service
+      systemd:
+        state: stopped
+        name: exzocoin
+
+    ## get the latest release
+    - name: Get latest release link
+      uri:
+        url: https://api.github.com/repos/ExzoNetwork/ExzoCoin/releases/latest
+        return_content: true
+      register: edge_release
+
+    ## download the latest release
+    - name: Download latest Exzocoin release
+      get_url:
+        url: "{{ edge_release.json.assets[3].browser_download_url }}"
+        dest: /tmp/exzocoin.tar.gz
+        force: yes
+
+    ## create temp dir for release
+    - name: Create temp dir for Exzocoin release
+      file:
+        path: /tmp/exzocoin
+        state: directory
+
+    ## unpack release tar
+    - name: Unpack Exzocoin release
+      unarchive:
+        remote_src: yes
+        src: /tmp/exzocoin.tar.gz
+        dest: /tmp/exzocoin
+
+    ## set exzocoin to PATH
+    - name: Place Exzocoin binary to PATH
+      copy:
+        remote_src: yes
+        src: /tmp/exzocoin/exzocoin
+        dest: /usr/local/bin/
+        mode: a+x
+        force: yes
+
+    ## remove release temp dir
+    - name: Remove temp Exzocoin release dir
+      file:
+        state: absent
+        path: /tmp/exzocoin
+
+    ## start exzocoin service
+    - name: Start exzocoin service
+      systemd:
+        state: restarted
+        name: exzocoin
+        daemon_reload: yes
+        enabled: yes
