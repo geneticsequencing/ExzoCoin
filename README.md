@@ -1,13 +1,19 @@
-
-
 ## Exzocoin
 * Name - EXZO
 * Symbol - XZO
 * Supply - 800 million
 * Blocktime - 3 seconds
+* Consensus - PoS
 * P2P Port - 1478
 * JSON-RPC Port - 8545 
 * EVM Compatible
+
+## Official Links
+* Website - https://exzocoin.com
+* Main Explorer - https://explorer.exzocoin.com
+* Test Explorer - https://testnet.exzocoin.com
+* Twitter - https://twitter.com/exzocoin
+* Telegram - https://t.me/exzocoin
 
 ### Build from Source
 Requirements - `Go >=1.17`
