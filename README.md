@@ -1,5 +1,5 @@
-## Exzocoin
-* Name - EXZO
+## Exzo Network Proof-of-Stake Blockchain Core
+* Name - Exzo Token
 * Symbol - XZO
 * Supply - 800 million
 * Blocktime - 3 seconds
@@ -9,10 +9,10 @@
 * EVM Compatible
 
 ## Official Links
-* Website - https://exzocoin.com
-* Main Explorer - https://explorer.exzocoin.com
-* Test Explorer - https://testnet.exzocoin.com
-* Twitter - https://twitter.com/exzocoin
+* Website - https://exzo.network
+* Main Explorer - https://explorer.exzo.technology
+* Test Explorer - https://testnet.exzo.technology
+* Twitter - https://twitter.com/exzo_network
 * Telegram - https://t.me/exzocoin
 
 ### Build from Source
