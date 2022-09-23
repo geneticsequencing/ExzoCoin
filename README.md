@@ -1,4 +1,4 @@
-## Exzo Network Proof-of-Stake Blockchain Core
+## Exzo Network - Proof-of-Stake Blockchain Core
 * Name - Exzo Token
 * Symbol - XZO
 * Supply - 800 million
@@ -62,7 +62,7 @@ After you have [downloaded](https://github.com/ExzoNetwork/ExzoCoin/releases/lat
 
 #### Running a non-Validating node
 ```
-server --data-dir ~/.exzocoin --chain mainnet-genesis.json --libp2p 0.0.0.0:1478 --nat<public_or_private_ip>
+./exzocoin server --data-dir ~/.exzocoin --chain mainnet-genesis.json --libp2p 0.0.0.0:1478 --nat<public_or_private_ip>
 ```
 
 
