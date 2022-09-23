@@ -6,6 +6,7 @@
 * Consensus - PoS
 * P2P Port - 1478
 * JSON-RPC Port - 8545 
+* ChainID - 2370
 * EVM Compatible
 
 ## Official Links
