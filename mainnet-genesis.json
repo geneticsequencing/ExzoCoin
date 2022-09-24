@@ -57,7 +57,7 @@
         "chainID": 2370,
         "engine": {
             "ibft": {
-                "epochSize": 600,
+                "epochSize": 7200,
                 "type": "PoS",
                 "validator_type": "ecdsa"
             }
