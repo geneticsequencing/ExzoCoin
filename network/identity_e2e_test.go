@@ -10,7 +10,7 @@ import (
 )
 
 func TestIdentityHandshake(t *testing.T) {
-	defaultChainID := 2370
+	defaultChainID := 1229
 
 	testTable := []struct {
 		name    string
