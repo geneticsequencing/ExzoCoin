@@ -1,4 +1,4 @@
-## Exzo Network - Proof-of-Stake Blockchain Core
+Exzo Network - Proof-of-Stake Blockchain Core
 * Native Token Name - Exzo
 * Symbol - XZO
 * Supply - 800 Million XZO
@@ -10,7 +10,7 @@
 * ChainID Testnet - 2370
 * Ethereum Virtual MAchine (EVM) Compatible
 
-## About the Exzo Network 
+About the Exzo Network 
 * Exzo Network uses a modular architecture and provides Ethereum compatibility.
 * Users able to interact with industry standard wallets through JSON-RPC.
 * Develop with Solidity/Vyper, full EVM support.
@@ -18,14 +18,22 @@
 * Streamlined UX when doing cross-chain operations.
 * Go beyond Ethereum’s Smart Contracts with Runtime plugins.
 
-## Cross-Chain Communication
+The Exzo Network Token (XZO) features the following utilities, and the value of XZO token will accrue with the increased usage of the network and revenue from stability fees and liquidation penalties.
+
+* As Network Utility Token: to pay for network fees and stability fees.
+* As Governance Token: to vote for/against risk parameters and network change proposals.
+* As Economic Capital: in case of liquidation without sufficient collaterals.
+* As fee reducing token on decentralized applications and wallets upon the Exzo Network.
+* For staking to help secure the Exzo Network in a decentralized fashion.
+
+Cross-Chain Communication
 * Completely trustless and decentralized built-in Ethereum Bridge solution.
 * Transfer assets to and from any EVM compatible network, most notably Polygon and Ethereum mainnets.
 * Transfer ERC-20 tokens, NFTs or wrapped native currencies.
 * Customize the bridge functionality using Bridge plugins.
 
 
-## Official Links
+Official Links
 * Website - https://exzo.network
 * Main Explorer - https://exzoscan.io
 * Test Explorer - https://testnet.exzoscan.io
