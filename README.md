@@ -1,19 +1,34 @@
 ## Exzo Network - Proof-of-Stake Blockchain Core
-* Name - Exzo Token
+* Native Token Name - Exzo
 * Symbol - XZO
-* Supply - 800 million
+* Supply - 800 Million XZO
 * Blocktime - 3 seconds
-* Consensus - PoS
+* Consensus - IBFT Proof-of-Stake (PoS)
 * P2P Port - 1478
 * JSON-RPC Port - 8545 
-* ChainID Main - 1229
-* ChainID Test - 2370
-* EVM Compatible
+* ChainID Mainnet - 1229
+* ChainID Testnet - 2370
+* Ethereum Virtual MAchine (EVM) Compatible
+
+## About the Exzo Network 
+* Exzo Network uses a modular architecture and provides Ethereum compatibility.
+* Users able to interact with industry standard wallets through JSON-RPC.
+* Develop with Solidity/Vyper, full EVM support.
+* Build using widely-adopted Ethereum tooling, libraries and development tools.
+* Streamlined UX when doing cross-chain operations.
+* Go beyond Ethereum’s Smart Contracts with Runtime plugins.
+
+## Cross-Chain Communication
+* Completely trustless and decentralized built-in Ethereum Bridge solution.
+* Transfer assets to and from any EVM compatible network, most notably Polygon and Ethereum mainnets.
+* Transfer ERC-20 tokens, NFTs or wrapped native currencies.
+* Customize the bridge functionality using Bridge plugins.
+
 
 ## Official Links
 * Website - https://exzo.network
-* Main Explorer - https://explorer.exzo.technology
-* Test Explorer - https://testnet.exzo.technology
+* Main Explorer - https://exzoscan.io
+* Test Explorer - https://testnet.exzoscan.io
 * Twitter - https://twitter.com/exzo_network
 * Telegram - https://t.me/exzocoin
 
@@ -69,8 +84,7 @@ After you have [downloaded](https://github.com/ExzoNetwork/ExzoCoin/releases/lat
 
 ---
 ```
-Copyright 2022 Polygon Technology
-Copyright 2022 Exzocoin
+Copyright 2023 Exzo Network
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
