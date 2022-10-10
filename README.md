@@ -32,6 +32,8 @@ Cross-Chain Communication
 * Transfer ERC-20 tokens, NFTs or wrapped native currencies.
 * Customize the bridge functionality using Bridge plugins.
 
+Note: This section is still work in progress, we will update more information as we progress.
+
 
 Official Links
 * Website - https://exzo.network
