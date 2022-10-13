@@ -1,4 +1,5 @@
-Exzo Network - Proof-of-Stake Blockchain Core
+# Exzo Network - Proof-of-Stake Blockchain Core
+**Chain Specs**
 * Native Token Name - Exzo
 * Symbol - XZO
 * Supply - 800 Million XZO
@@ -10,7 +11,14 @@ Exzo Network - Proof-of-Stake Blockchain Core
 * ChainID Testnet - 2370
 * Ethereum Virtual MAchine (EVM) Compatible
 
-About the Exzo Network 
+**Official Links**
+* Website - https://exzo.network
+* Main Explorer - https://exzoscan.io
+* Test Explorer - https://testnet.exzoscan.io
+* Twitter - https://twitter.com/exzo_network
+* Telegram - https://t.me/exzocoin
+
+## About the Exzo Network 
 * Exzo Network uses a modular architecture and provides Ethereum compatibility.
 * Users able to interact with industry standard wallets through JSON-RPC.
 * Develop with Solidity/Vyper, full EVM support.
@@ -32,15 +40,7 @@ Cross-Chain Communication
 * Transfer ERC-20 tokens, NFTs or wrapped native currencies.
 * Customize the bridge functionality using Bridge plugins.
 
-Note: This section is still work in progress, we will update more information as we progress.
-
-
-Official Links
-* Website - https://exzo.network
-* Main Explorer - https://exzoscan.io
-* Test Explorer - https://testnet.exzoscan.io
-* Twitter - https://twitter.com/exzo_network
-* Telegram - https://t.me/exzocoin
+**Note: This section is still work in progress, we will update more information as we progress.**
 
 ### Build from Source (Ubuntu 20.04)
 Requirements - `Go >=1.17`
@@ -80,6 +80,9 @@ cd ExzoCoin/
 go build -o exzocoin main.go
 ```
 
+#### Setup Validator (optional)
+
+
 #### Running a Full Validating Node
 After you have [downloaded](https://github.com/ExzoNetwork/ExzoCoin/releases/latest) the binaries or [built from source](https://github.com/ExzoNetwork/ExzoCoin#build-from-source), enter the `ExzoCoin` directory and run the following:
 ```
@@ -94,7 +97,7 @@ After you have [downloaded](https://github.com/ExzoNetwork/ExzoCoin/releases/lat
 
 ---
 ```
-Copyright 2023 Exzo Network
+Copyright 2022 Exzo Network
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
