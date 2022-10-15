@@ -86,6 +86,9 @@ go build -o exzocoin main.go
 #### Running a Full Validating Node
 After you have [downloaded](https://github.com/ExzoNetwork/ExzoCoin/releases/latest) the binaries or [built from source](https://github.com/ExzoNetwork/ExzoCoin#build-from-source), enter the `ExzoCoin` directory and run the following:
 ```
+mkdir ~/.exzocoin
+```
+```
 ./exzocoin server --data-dir ~/.exzocoin --chain mainnet-genesis.json --seal --max-slots 40960 --grpc 0.0.0.0:9632 --libp2p 0.0.0.0:1478 --jsonrpc 0.0.0.0:8545 --max-inbound-peers 128 --max-outbound-peers 16
 ```
 
