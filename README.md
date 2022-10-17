@@ -40,6 +40,10 @@ Cross-Chain Communication
 * Transfer ERC-20 tokens, NFTs or wrapped native currencies.
 * Customize the bridge functionality using Bridge plugins.
 
+## Testing Framework References
+* https://www.researchgate.net/publication/340890880_Meta-model_for_Stress_Testing_on_Blockchain_Nodes
+* 
+
 **Note: This section is still work in progress, we will be adding more information as we progress.**
 
 ### Build from Source (Ubuntu 20.04)
