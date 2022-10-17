@@ -2,14 +2,14 @@
 **Chain Specs**
 * Native Token Name - Exzo
 * Symbol - XZO
-* Supply - 800 Million XZO
+* Supply - 250 Million XZO
 * Blocktime - 3 seconds
 * Consensus - IBFT Proof-of-Stake (PoS)
 * P2P Port - 1478
 * JSON-RPC Port - 8545 
 * ChainID Mainnet - 1229
 * ChainID Testnet - 2370
-* Ethereum Virtual MAchine (EVM) Compatible
+* Ethereum Virtual Machine (EVM) Compatible
 
 **Official Links**
 * Website - https://exzo.network
@@ -40,7 +40,7 @@ Cross-Chain Communication
 * Transfer ERC-20 tokens, NFTs or wrapped native currencies.
 * Customize the bridge functionality using Bridge plugins.
 
-**Note: This section is still work in progress, we will update more information as we progress.**
+**Note: This section is still work in progress, we will be adding more information as we progress.**
 
 ### Build from Source (Ubuntu 20.04)
 Requirements - `Go >=1.18.x`
