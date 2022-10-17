@@ -14,7 +14,7 @@ import (
 func GetCommand() *cobra.Command {
 	statusCmd := &cobra.Command{
 		Use:   "status",
-		Short: "Returns the status of the Exzocoin client",
+		Short: "Returns the status of the Polygon Edge client",
 		Args:  cobra.NoArgs,
 		Run:   runCommand,
 	}

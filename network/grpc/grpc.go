@@ -10,8 +10,8 @@ import (
 
 	manet "github.com/multiformats/go-multiaddr/net"
 
-	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"google.golang.org/grpc"
 	grpcPeer "google.golang.org/grpc/peer"
 )
@@ -37,7 +37,7 @@ type Context struct {
 }
 
 // interceptor is the middleware function that wraps
-// gRPC peer data to custom Exzocoin structures
+// gRPC peer data to custom Polygon Edge structures
 func interceptor(
 	ctx context.Context,
 	req interface{},

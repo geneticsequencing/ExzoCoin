@@ -28,11 +28,10 @@ func TestClusterBlockSync(t *testing.T) {
 
 				if i >= IBFTMinNodes {
 					// Other nodes should not be in the validator set
-					dirPrefix := "polygon-edge-non-validator-"
+					dirPrefix := "exzocoin-non-validator-"
 					config.SetIBFTDirPrefix(dirPrefix)
 					config.SetIBFTDir(fmt.Sprintf("%s%d", dirPrefix, i))
 				}
-				config.SetSeal(i < IBFTMinNodes)
 			})
 
 		startContext, startCancelFn := context.WithTimeout(context.Background(), time.Minute)

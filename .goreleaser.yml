@@ -1,4 +1,4 @@
-project_name: exzocoin
+project_name: ExzoNetwork
 
 release:
   disable: false
@@ -45,6 +45,8 @@ builds:
     ldflags:
       # We need to build a static binary because we are building in a glibc based system and running in a musl container
       -s -w -linkmode external -extldflags "-static" -X 'github.com/ExzoNetwork/ExzoCoin/versioning.Version=v{{ .Version }}'
+    tags:
+      - netgo
 
   - id: linux-arm64
     main: ./main.go
@@ -59,17 +61,19 @@ builds:
     ldflags:
       # We need to build a static binary because we are building in a glibc based system and running in a musl container
       -s -w -linkmode external -extldflags "-static" -X 'github.com/ExzoNetwork/ExzoCoin/versioning.Version=v{{ .Version }}'
+    tags:
+      - netgo
 
 archives:
   -
     files:
-    - LICENSE
-    - README.md
+      - LICENSE
+      - README.md
 
 #nfpms:
-#  - vendor: 0xPolygon
+#  - vendor: ExzoNetwork
 #    homepage: https://polygon.technology
-#    maintainer: Exzocoin Team <edge@polygon.technology>
+#    maintainer: Polygon Edge Team <edge@polygon.technology>
 #    description:  A Framework for Building Ethereum-compatible Blockchain Networks
 #    license: GPLv3 LGPLv3
 #

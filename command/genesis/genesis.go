@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ExzoNetwork/ExzoCoin/command"
+	"github.com/ExzoNetwork/ExzoCoin/command/genesis/predeploy"
 	"github.com/ExzoNetwork/ExzoCoin/command/helper"
 	"github.com/ExzoNetwork/ExzoCoin/consensus/ibft"
 	"github.com/ExzoNetwork/ExzoCoin/helper/common"
@@ -26,6 +27,11 @@ func GetCommand() *cobra.Command {
 
 	helper.SetRequiredFlags(genesisCmd, params.getRequiredFlags())
 
+	genesisCmd.AddCommand(
+		// genesis predeploy
+		predeploy.GetCommand(),
+	)
+
 	return genesisCmd
 }
 
@@ -34,7 +40,7 @@ func setFlags(cmd *cobra.Command) {
 		&params.genesisPath,
 		dirFlag,
 		fmt.Sprintf("./%s", command.DefaultGenesisFileName),
-		"the directory for the Exzocoin genesis data",
+		"the directory for the Polygon Edge genesis data",
 	)
 
 	cmd.Flags().Uint64Var(

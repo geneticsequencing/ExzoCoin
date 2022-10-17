@@ -6,15 +6,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-hclog"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ExzoNetwork/ExzoCoin/blockchain"
 	"github.com/ExzoNetwork/ExzoCoin/network"
 	"github.com/ExzoNetwork/ExzoCoin/network/event"
 	"github.com/ExzoNetwork/ExzoCoin/network/grpc"
 	"github.com/ExzoNetwork/ExzoCoin/syncer/proto"
 	"github.com/ExzoNetwork/ExzoCoin/types"
-	"github.com/hashicorp/go-hclog"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -371,7 +372,8 @@ func TestPeerConnectionUpdateEventCh(t *testing.T) {
 // Make sure the peer shouldn't emit status if the shouldEmitBlocks flag is set.
 // The subtests cannot contain t.Parallel() due to how
 // the test is organized
-//nolint:tparallel, gofmt
+//
+//nolint:tparallel
 func Test_shouldEmitBlocks(t *testing.T) {
 	t.Parallel()
 

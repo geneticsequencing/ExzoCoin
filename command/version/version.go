@@ -9,7 +9,7 @@ import (
 func GetCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
-		Short: "Returns the current Exzocoin version",
+		Short: "Returns the current Polygon Edge version",
 		Args:  cobra.NoArgs,
 		Run:   runCommand,
 	}

@@ -4,6 +4,7 @@ import (
 	"github.com/ExzoNetwork/ExzoCoin/command/helper"
 	"github.com/ExzoNetwork/ExzoCoin/command/secrets/generate"
 	initCmd "github.com/ExzoNetwork/ExzoCoin/command/secrets/init"
+	"github.com/ExzoNetwork/ExzoCoin/command/secrets/output"
 	"github.com/spf13/cobra"
 )
 
@@ -26,5 +27,7 @@ func registerSubcommands(baseCmd *cobra.Command) {
 		initCmd.GetCommand(),
 		// secrets generate
 		generate.GetCommand(),
+		// secrets output public data
+		output.GetCommand(),
 	)
 }

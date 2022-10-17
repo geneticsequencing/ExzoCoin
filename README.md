@@ -43,7 +43,7 @@ Cross-Chain Communication
 **Note: This section is still work in progress, we will update more information as we progress.**
 
 ### Build from Source (Ubuntu 20.04)
-Requirements - `Go >=1.17`
+Requirements - `Go >=1.18.x`
 
 #### Setup Go Path
 ```
@@ -60,9 +60,9 @@ source ~/.profile
 
 #### Install Go
 ```
-wget https://go.dev/dl/go1.17.13.linux-amd64.tar.gz
-sudo tar -xvf go1.17.13.linux-amd64.tar.gz
-sudo mv go /usr/local && rm go1.17.13.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.18.7.linux-amd64.tar.gz
+sudo tar -xvf go1.18.7.linux-amd64.tar.gz
+sudo mv go /usr/local && rm go1.18.7.linux-amd64.tar.gz
 ```
 Check that it's installed
 ```
@@ -70,7 +70,7 @@ go version
 ```
 You should see something like this:
 ```
-go version go1.17.13 linux/amd64
+go version go1.18.7 linux/amd64
 ```
 
 #### Build Exzocoin

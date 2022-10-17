@@ -13,7 +13,7 @@ import (
 	"github.com/ExzoNetwork/ExzoCoin/network/event"
 	"github.com/ExzoNetwork/ExzoCoin/types"
 	"github.com/hashicorp/go-hclog"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/stretchr/testify/assert"
 )
 

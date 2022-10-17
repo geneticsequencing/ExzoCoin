@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"net"
 	"os"
@@ -13,8 +12,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/umbracle/ethgo"
 
 	"github.com/ExzoNetwork/ExzoCoin/contracts/abis"
 	"github.com/ExzoNetwork/ExzoCoin/contracts/staking"
@@ -25,6 +22,7 @@ import (
 	txpoolProto "github.com/ExzoNetwork/ExzoCoin/txpool/proto"
 	"github.com/ExzoNetwork/ExzoCoin/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/umbracle/ethgo"
 	"github.com/umbracle/ethgo/jsonrpc"
 	"golang.org/x/crypto/sha3"
 	empty "google.golang.org/protobuf/types/known/emptypb"
@@ -382,7 +380,7 @@ func MethodSigWithParams(nameWithParams string) []byte {
 
 // tempDir returns directory path in tmp with random directory name
 func tempDir() (string, error) {
-	return ioutil.TempDir("/tmp", "exzocoin-e2e-")
+	return os.MkdirTemp("/tmp", "exzocoin-e2e-")
 }
 
 func ToLocalIPv4LibP2pAddr(port int, nodeID string) string {

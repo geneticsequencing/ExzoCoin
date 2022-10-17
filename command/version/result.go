@@ -3,6 +3,7 @@ package version
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/ExzoNetwork/ExzoCoin/command/helper"
 )
 

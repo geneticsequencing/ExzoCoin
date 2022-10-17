@@ -14,7 +14,7 @@ import (
 	"github.com/ExzoNetwork/ExzoCoin/syncer/proto"
 	"github.com/ExzoNetwork/ExzoCoin/types"
 	"github.com/hashicorp/go-hclog"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 

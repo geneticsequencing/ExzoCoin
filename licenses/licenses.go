@@ -14,7 +14,7 @@ type DepLicense struct {
 }
 
 var (
-	// Exzocoin License
+	// Polygon Edge License
 	License string
 
 	// Dependency Licenses

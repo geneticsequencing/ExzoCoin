@@ -11,7 +11,7 @@ import (
 	"github.com/ExzoNetwork/ExzoCoin/network"
 	"github.com/ExzoNetwork/ExzoCoin/network/event"
 	"github.com/ExzoNetwork/ExzoCoin/types"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"google.golang.org/protobuf/proto"
 )
 

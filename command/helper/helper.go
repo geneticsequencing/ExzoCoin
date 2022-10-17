@@ -4,23 +4,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/ExzoNetwork/ExzoCoin/chain"
 	"github.com/ExzoNetwork/ExzoCoin/command"
 	ibftOp "github.com/ExzoNetwork/ExzoCoin/consensus/ibft/proto"
+	"github.com/ExzoNetwork/ExzoCoin/helper/common"
 	"github.com/ExzoNetwork/ExzoCoin/server"
 	"github.com/ExzoNetwork/ExzoCoin/server/proto"
 	txpoolOp "github.com/ExzoNetwork/ExzoCoin/txpool/proto"
+	"github.com/ryanuber/columnize"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/ExzoNetwork/ExzoCoin/helper/common"
-	"github.com/ryanuber/columnize"
 )
 
 type ClientCloseResult struct {
@@ -235,8 +234,7 @@ func WriteGenesisConfigToDisk(genesisConfig *chain.Chain, genesisPath string) er
 		return fmt.Errorf("failed to generate genesis: %w", err)
 	}
 
-	//nolint:gosec
-	if err := ioutil.WriteFile(genesisPath, data, 0644); err != nil {
+	if err := os.WriteFile(genesisPath, data, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write genesis: %w", err)
 	}
 

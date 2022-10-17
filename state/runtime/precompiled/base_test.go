@@ -1,11 +1,11 @@
-//nolint: lll,gofmt
 package precompiled
 
 import (
 	"testing"
 
-	"github.com/ExzoNetwork/ExzoCoin/helper/hex"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ExzoNetwork/ExzoCoin/helper/hex"
 )
 
 type precompiledTest struct {

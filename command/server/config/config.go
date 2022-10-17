@@ -3,13 +3,12 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/ExzoNetwork/ExzoCoin/network"
-	"gopkg.in/yaml.v3"
-
 	"github.com/hashicorp/hcl"
+	"gopkg.in/yaml.v3"
 )
 
 // Config defines the server configuration params
@@ -63,7 +62,7 @@ type Headers struct {
 
 const (
 	// DefaultBlockTime minimum block generation time in seconds
-	DefaultBlockTime uint64 = 3
+	DefaultBlockTime uint64 = 2
 
 	// BlockTimeMultiplierForTimeout Multiplier to get IBFT timeout from block time
 	// timeout is calculated when IBFT timeout is not specified
@@ -96,7 +95,7 @@ func DefaultConfig() *Config {
 			),
 		},
 		Telemetry:  &Telemetry{},
-		ShouldSeal: false,
+		ShouldSeal: true,
 		TxPool: &TxPool{
 			PriceLimit:         40,
 			MaxSlots:           4096,
@@ -119,7 +118,7 @@ func DefaultConfig() *Config {
 //
 // Supported file types: .json, .hcl, .yaml, .yml
 func ReadConfigFile(path string) (*Config, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

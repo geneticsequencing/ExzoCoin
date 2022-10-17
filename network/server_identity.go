@@ -8,10 +8,10 @@ import (
 	"github.com/ExzoNetwork/ExzoCoin/network/grpc"
 	"github.com/ExzoNetwork/ExzoCoin/network/identity"
 	"github.com/ExzoNetwork/ExzoCoin/network/proto"
-	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/peer"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
 	"github.com/libp2p/go-libp2p-kbucket/keyspace"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
 	rawGrpc "google.golang.org/grpc"
 )
 

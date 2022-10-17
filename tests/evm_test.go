@@ -2,23 +2,21 @@ package tests
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"math/big"
+	"os"
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-hclog"
-	"github.com/umbracle/fastrlp"
-
 	"github.com/ExzoNetwork/ExzoCoin/chain"
+	"github.com/ExzoNetwork/ExzoCoin/crypto"
 	"github.com/ExzoNetwork/ExzoCoin/helper/hex"
 	"github.com/ExzoNetwork/ExzoCoin/helper/keccak"
 	"github.com/ExzoNetwork/ExzoCoin/state"
 	"github.com/ExzoNetwork/ExzoCoin/state/runtime"
 	"github.com/ExzoNetwork/ExzoCoin/state/runtime/evm"
 	"github.com/ExzoNetwork/ExzoCoin/types"
-
-	"github.com/ExzoNetwork/ExzoCoin/crypto"
+	"github.com/hashicorp/go-hclog"
+	"github.com/umbracle/fastrlp"
 )
 
 var mainnetChainConfig = chain.Params{
@@ -167,7 +165,7 @@ func TestEVM(t *testing.T) {
 					return
 				}
 
-				data, err := ioutil.ReadFile(file)
+				data, err := os.ReadFile(file)
 				if err != nil {
 					t.Fatal(err)
 				}
