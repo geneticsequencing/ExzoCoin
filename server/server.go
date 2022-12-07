@@ -18,7 +18,6 @@ import (
 	"github.com/ExzoNetwork/ExzoCoin/crypto"
 	"github.com/ExzoNetwork/ExzoCoin/helper/common"
 	configHelper "github.com/ExzoNetwork/ExzoCoin/helper/config"
-	"github.com/ExzoNetwork/ExzoCoin/helper/keccak"
 	"github.com/ExzoNetwork/ExzoCoin/helper/progress"
 	"github.com/ExzoNetwork/ExzoCoin/jsonrpc"
 	"github.com/ExzoNetwork/ExzoCoin/network"
@@ -27,8 +26,7 @@ import (
 	"github.com/ExzoNetwork/ExzoCoin/state"
 	itrie "github.com/ExzoNetwork/ExzoCoin/state/immutable-trie"
 	"github.com/ExzoNetwork/ExzoCoin/state/runtime"
-	"github.com/ExzoNetwork/ExzoCoin/state/runtime/evm"
-	"github.com/ExzoNetwork/ExzoCoin/state/runtime/precompiled"
+	"github.com/ExzoNetwork/ExzoCoin/state/runtime/tracer"
 	"github.com/ExzoNetwork/ExzoCoin/txpool"
 	"github.com/ExzoNetwork/ExzoCoin/types"
 	"github.com/hashicorp/go-hclog"
@@ -65,8 +63,6 @@ type Server struct {
 	// transaction pool
 	txpool *txpool.TxPool
 
-	serverMetrics *serverMetrics
-
 	prometheusServer *http.Server
 
 	// secrets manager
@@ -90,17 +86,19 @@ func newFileLogger(config *Config) (hclog.Logger, error) {
 	}
 
 	return hclog.New(&hclog.LoggerOptions{
-		Name:   "polygon",
-		Level:  config.LogLevel,
-		Output: logFileWriter,
+		Name:       "polygon",
+		Level:      config.LogLevel,
+		Output:     logFileWriter,
+		JSONFormat: config.JSONLogFormat,
 	}), nil
 }
 
 // newCLILogger returns minimal logger instance that sends all logs to standard output
 func newCLILogger(config *Config) hclog.Logger {
 	return hclog.New(&hclog.LoggerOptions{
-		Name:  "polygon",
-		Level: config.LogLevel,
+		Name:       "polygon",
+		Level:      config.LogLevel,
+		JSONFormat: config.JSONLogFormat,
 	})
 }
 
@@ -143,10 +141,12 @@ func NewServer(config *Config) (*Server, error) {
 	}
 
 	if config.Telemetry.PrometheusAddr != nil {
-		m.serverMetrics = metricProvider("polygon", config.Chain.Name, true)
+		// Only setup telemetry if `PrometheusAddr` has been configured.
+		if err := m.setupTelemetry(); err != nil {
+			return nil, err
+		}
+
 		m.prometheusServer = m.startPrometheusServer(config.Telemetry.PrometheusAddr)
-	} else {
-		m.serverMetrics = metricProvider("polygon", config.Chain.Name, false)
 	}
 
 	// Set up datadog profiler
@@ -165,7 +165,6 @@ func NewServer(config *Config) (*Server, error) {
 		netConfig.Chain = m.config.Chain
 		netConfig.DataDir = filepath.Join(m.config.DataDir, "libp2p")
 		netConfig.SecretsManager = m.secretsManager
-		netConfig.Metrics = m.serverMetrics.network
 
 		network, err := network.NewServer(logger, netConfig)
 		if err != nil {
@@ -186,8 +185,6 @@ func NewServer(config *Config) (*Server, error) {
 	m.state = st
 
 	m.executor = state.NewExecutor(config.Chain.Params, st, logger)
-	m.executor.SetRuntime(precompiled.NewPrecompiled())
-	m.executor.SetRuntime(evm.NewEVM())
 
 	// compute the genesis root state
 	genesisRoot := m.executor.WriteGenesis(config.Chain.Genesis.Alloc)
@@ -222,7 +219,6 @@ func NewServer(config *Config) (*Server, error) {
 			hub,
 			m.grpcServer,
 			m.network,
-			m.serverMetrics.txpool,
 			&txpool.Config{
 				MaxSlots:            m.config.MaxSlots,
 				PriceLimit:          m.config.PriceLimit,
@@ -303,20 +299,29 @@ type txpoolHub struct {
 	*blockchain.Blockchain
 }
 
-func (t *txpoolHub) GetNonce(root types.Hash, addr types.Address) uint64 {
-	snap, err := t.state.NewSnapshotAt(root)
+// getAccountImpl is used for fetching account state from both TxPool and JSON-RPC
+func getAccountImpl(state state.State, root types.Hash, addr types.Address) (*state.Account, error) {
+	snap, err := state.NewSnapshotAt(root)
 	if err != nil {
-		return 0
+		return nil, fmt.Errorf("unable to get snapshot for root '%s': %w", root, err)
 	}
 
-	result, ok := snap.Get(keccak.Keccak256(nil, addr.Bytes()))
-	if !ok {
-		return 0
+	account, err := snap.GetAccount(addr)
+	if err != nil {
+		return nil, err
 	}
 
-	var account state.Account
+	if account == nil {
+		return nil, jsonrpc.ErrStateNotFound
+	}
 
-	if err := account.UnmarshalRlp(result); err != nil {
+	return account, nil
+}
+
+func (t *txpoolHub) GetNonce(root types.Hash, addr types.Address) uint64 {
+	account, err := getAccountImpl(t.state, root, addr)
+
+	if err != nil {
 		return 0
 	}
 
@@ -324,19 +329,14 @@ func (t *txpoolHub) GetNonce(root types.Hash, addr types.Address) uint64 {
 }
 
 func (t *txpoolHub) GetBalance(root types.Hash, addr types.Address) (*big.Int, error) {
-	snap, err := t.state.NewSnapshotAt(root)
+	account, err := getAccountImpl(t.state, root, addr)
+
 	if err != nil {
-		return nil, fmt.Errorf("unable to get snapshot for root, %w", err)
-	}
+		if errors.Is(err, jsonrpc.ErrStateNotFound) {
+			return big.NewInt(0), nil
+		}
 
-	result, ok := snap.Get(keccak.Keccak256(nil, addr.Bytes()))
-	if !ok {
-		return big.NewInt(0), nil
-	}
-
-	var account state.Account
-	if err = account.UnmarshalRlp(result); err != nil {
-		return nil, fmt.Errorf("unable to unmarshal account from snapshot, %w", err)
+		return big.NewInt(0), err
 	}
 
 	return account.Balance, nil
@@ -416,7 +416,6 @@ func (s *Server) setupConsensus() error {
 			Executor:       s.executor,
 			Grpc:           s.grpcServer,
 			Logger:         s.logger,
-			Metrics:        s.serverMetrics.consensus,
 			SecretsManager: s.secretsManager,
 			BlockTime:      s.config.BlockTime,
 		},
@@ -442,42 +441,22 @@ type jsonRPCHub struct {
 	consensus.Consensus
 }
 
-// HELPER + WRAPPER METHODS //
-
 func (j *jsonRPCHub) GetPeers() int {
 	return len(j.Server.Peers())
 }
 
-func (j *jsonRPCHub) getState(root types.Hash, slot []byte) ([]byte, error) {
-	// the values in the trie are the hashed objects of the keys
-	key := keccak.Keccak256(nil, slot)
-
-	snap, err := j.state.NewSnapshotAt(root)
+func (j *jsonRPCHub) GetAccount(root types.Hash, addr types.Address) (*jsonrpc.Account, error) {
+	acct, err := getAccountImpl(j.state, root, addr)
 	if err != nil {
 		return nil, err
 	}
 
-	result, ok := snap.Get(key)
-
-	if !ok {
-		return nil, jsonrpc.ErrStateNotFound
+	account := &jsonrpc.Account{
+		Nonce:   acct.Nonce,
+		Balance: new(big.Int).Set(acct.Balance),
 	}
 
-	return result, nil
-}
-
-func (j *jsonRPCHub) GetAccount(root types.Hash, addr types.Address) (*state.Account, error) {
-	obj, err := j.getState(root, addr.Bytes())
-	if err != nil {
-		return nil, err
-	}
-
-	var account state.Account
-	if err := account.UnmarshalRlp(obj); err != nil {
-		return nil, err
-	}
-
-	return &account, nil
+	return account, nil
 }
 
 // GetForksInTime returns the active forks at the given block height
@@ -485,30 +464,34 @@ func (j *jsonRPCHub) GetForksInTime(blockNumber uint64) chain.ForksInTime {
 	return j.Executor.GetForksInTime(blockNumber)
 }
 
-func (j *jsonRPCHub) GetStorage(root types.Hash, addr types.Address, slot types.Hash) ([]byte, error) {
-	account, err := j.GetAccount(root, addr)
-
+func (j *jsonRPCHub) GetStorage(stateRoot types.Hash, addr types.Address, slot types.Hash) ([]byte, error) {
+	account, err := getAccountImpl(j.state, stateRoot, addr)
 	if err != nil {
 		return nil, err
 	}
 
-	obj, err := j.getState(account.Root, slot.Bytes())
-
+	snap, err := j.state.NewSnapshotAt(stateRoot)
 	if err != nil {
 		return nil, err
 	}
 
-	return obj, nil
+	res := snap.GetStorage(addr, account.Root, slot)
+
+	return res.Bytes(), nil
 }
 
-func (j *jsonRPCHub) GetCode(hash types.Hash) ([]byte, error) {
-	res, ok := j.state.GetCode(hash)
+func (j *jsonRPCHub) GetCode(root types.Hash, addr types.Address) ([]byte, error) {
+	account, err := getAccountImpl(j.state, root, addr)
+	if err != nil {
+		return nil, err
+	}
 
+	code, ok := j.state.GetCode(types.BytesToHash(account.CodeHash))
 	if !ok {
 		return nil, fmt.Errorf("unable to fetch code")
 	}
 
-	return res, nil
+	return code, nil
 }
 
 func (j *jsonRPCHub) ApplyTxn(
@@ -521,7 +504,6 @@ func (j *jsonRPCHub) ApplyTxn(
 	}
 
 	transition, err := j.BeginTxn(header.StateRoot, header, blockCreator)
-
 	if err != nil {
 		return
 	}
@@ -529,6 +511,126 @@ func (j *jsonRPCHub) ApplyTxn(
 	result, err = transition.Apply(txn)
 
 	return
+}
+
+// TraceBlock traces all transactions in the given block and returns all results
+func (j *jsonRPCHub) TraceBlock(
+	block *types.Block,
+	tracer tracer.Tracer,
+) ([]interface{}, error) {
+	if block.Number() == 0 {
+		return nil, errors.New("genesis block can't have transaction")
+	}
+
+	parentHeader, ok := j.GetHeaderByHash(block.ParentHash())
+	if !ok {
+		return nil, errors.New("parent header not found")
+	}
+
+	blockCreator, err := j.GetConsensus().GetBlockCreator(block.Header)
+	if err != nil {
+		return nil, err
+	}
+
+	transition, err := j.BeginTxn(parentHeader.StateRoot, block.Header, blockCreator)
+	if err != nil {
+		return nil, err
+	}
+
+	transition.SetTracer(tracer)
+
+	results := make([]interface{}, len(block.Transactions))
+
+	for idx, tx := range block.Transactions {
+		tracer.Clear()
+
+		if _, err := transition.Apply(tx); err != nil {
+			return nil, err
+		}
+
+		if results[idx], err = tracer.GetResult(); err != nil {
+			return nil, err
+		}
+	}
+
+	return results, nil
+}
+
+// TraceTxn traces a transaction in the block, associated with the given hash
+func (j *jsonRPCHub) TraceTxn(
+	block *types.Block,
+	targetTxHash types.Hash,
+	tracer tracer.Tracer,
+) (interface{}, error) {
+	if block.Number() == 0 {
+		return nil, errors.New("genesis block can't have transaction")
+	}
+
+	parentHeader, ok := j.GetHeaderByHash(block.ParentHash())
+	if !ok {
+		return nil, errors.New("parent header not found")
+	}
+
+	blockCreator, err := j.GetConsensus().GetBlockCreator(block.Header)
+	if err != nil {
+		return nil, err
+	}
+
+	transition, err := j.BeginTxn(parentHeader.StateRoot, block.Header, blockCreator)
+	if err != nil {
+		return nil, err
+	}
+
+	var targetTx *types.Transaction
+
+	for _, tx := range block.Transactions {
+		if tx.Hash == targetTxHash {
+			targetTx = tx
+
+			break
+		}
+
+		// Execute transactions without tracer until reaching the target transaction
+		if _, err := transition.Apply(tx); err != nil {
+			return nil, err
+		}
+	}
+
+	if targetTx == nil {
+		return nil, errors.New("target tx not found")
+	}
+
+	transition.SetTracer(tracer)
+
+	if _, err := transition.Apply(targetTx); err != nil {
+		return nil, err
+	}
+
+	return tracer.GetResult()
+}
+
+func (j *jsonRPCHub) TraceCall(
+	tx *types.Transaction,
+	parentHeader *types.Header,
+	tracer tracer.Tracer,
+) (interface{}, error) {
+	blockCreator, err := j.GetConsensus().GetBlockCreator(parentHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	transition, err := j.BeginTxn(parentHeader.StateRoot, parentHeader, blockCreator)
+	if err != nil {
+		return nil, err
+	}
+
+	transition.SetTracer(tracer)
+
+	if _, err := transition.Apply(tx); err != nil {
+		return nil, err
+	}
+
+	return tracer.GetResult()
 }
 
 func (j *jsonRPCHub) GetSyncProgression() *progress.Progression {

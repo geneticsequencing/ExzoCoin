@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ExzoNetwork/ExzoCoin/state"
 	"github.com/ExzoNetwork/ExzoCoin/types"
 	"github.com/hashicorp/go-hclog"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +15,7 @@ func TestEth_DecodeTxn(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		accounts map[types.Address]*state.Account
+		accounts map[types.Address]*Account
 		arg      *txnArgs
 		res      *types.Transaction
 		err      error
@@ -77,7 +76,7 @@ func TestEth_DecodeTxn(t *testing.T) {
 		},
 		{
 			name: "should set latest nonce as default",
-			accounts: map[types.Address]*state.Account{
+			accounts: map[types.Address]*Account{
 				addr1: {
 					Nonce: 10,
 				},
@@ -157,8 +156,7 @@ func TestEth_DecodeTxn(t *testing.T) {
 				store.SetAccount(addr, acc)
 			}
 
-			eth := newTestEthEndpoint(store)
-			res, err := eth.decodeTxn(tt.arg)
+			res, err := DecodeTxn(tt.arg, store)
 			assert.Equal(t, tt.res, res)
 			assert.Equal(t, tt.err, err)
 		})
@@ -171,11 +169,11 @@ func TestEth_GetNextNonce(t *testing.T) {
 	// Set up the mock accounts
 	accounts := []struct {
 		address types.Address
-		account *state.Account
+		account *Account
 	}{
 		{
 			types.StringToAddress("123"),
-			&state.Account{
+			&Account{
 				Nonce: 5,
 			},
 		},
@@ -221,7 +219,7 @@ func TestEth_GetNextNonce(t *testing.T) {
 			t.Parallel()
 
 			// Grab the nonce
-			nonce, err := eth.getNextNonce(testCase.account, testCase.number)
+			nonce, err := GetNextNonce(testCase.account, testCase.number, eth.store)
 
 			// Assert errors
 			assert.NoError(t, err)
@@ -232,10 +230,71 @@ func TestEth_GetNextNonce(t *testing.T) {
 	}
 }
 
-func newTestEthEndpoint(store ethStore) *Eth {
-	return &Eth{hclog.NewNullLogger(), store, 100, nil, 0}
+func newTestEthEndpoint(store testStore) *Eth {
+	return &Eth{
+		hclog.NewNullLogger(), store, 100, nil, 0,
+	}
 }
 
-func newTestEthEndpointWithPriceLimit(store ethStore, priceLimit uint64) *Eth {
-	return &Eth{hclog.NewNullLogger(), store, 100, nil, priceLimit}
+func newTestEthEndpointWithPriceLimit(store testStore, priceLimit uint64) *Eth {
+	return &Eth{
+		hclog.NewNullLogger(), store, 100, nil, priceLimit,
+	}
+}
+
+func TestEth_HeaderResolveBlock(t *testing.T) {
+	// Set up the mock store
+	store := newMockStore()
+	store.header.Number = 10
+
+	latest := LatestBlockNumber
+	blockNum5 := BlockNumber(5)
+	blockNum10 := BlockNumber(10)
+	hash := types.Hash{0x1}
+
+	cases := []struct {
+		filter BlockNumberOrHash
+		err    bool
+	}{
+		{
+			// both fields are empty
+			BlockNumberOrHash{},
+			false,
+		},
+		{
+			// return the latest block number
+			BlockNumberOrHash{BlockNumber: &latest},
+			false,
+		},
+		{
+			// specific real block number
+			BlockNumberOrHash{BlockNumber: &blockNum10},
+			false,
+		},
+		{
+			// specific block number (not found)
+			BlockNumberOrHash{BlockNumber: &blockNum5},
+			true,
+		},
+		{
+			// specific block by hash (found). By default all blocks in the mock have hash zero
+			BlockNumberOrHash{BlockHash: &types.ZeroHash},
+			false,
+		},
+		{
+			// specific block by hash (not found)
+			BlockNumberOrHash{BlockHash: &hash},
+			true,
+		},
+	}
+
+	for _, c := range cases {
+		header, err := GetHeaderFromBlockNumberOrHash(c.filter, store)
+		if c.err {
+			assert.Error(t, err)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, header.Number, uint64(10))
+		}
+	}
 }

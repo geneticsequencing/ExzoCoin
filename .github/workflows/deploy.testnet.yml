@@ -14,16 +14,17 @@ permissions:
 jobs:
   snyk:
     name: Snyk and Publish
-    uses: ExzoNetwork/ExzoCoin/.github/workflows/security.yml@develop
+    uses: ./.github/workflows/security.yml
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      SNYK_ORG: ${{ secrets.SNYK_ORG }}
 
   build:
-    uses: ExzoNetwork/ExzoCoin/.github/workflows/build.yml@develop
+    uses: ./.github/workflows/build.yml
     name: Build
 
   test:
-    uses: ExzoNetwork/ExzoCoin/.github/workflows/test.yml@develop
+    uses: ./.github/workflows/test.yml
     name: Test
     needs: build
 
@@ -155,9 +156,9 @@ jobs:
               ]
             }
 
-  pandoras_box:
-    uses: ExzoNetwork/ExzoCoin/.github/workflows/pandoras_box.yml@develop
-    name: Pandora's Box
+  pandoras_box_eoa:
+    uses: ./.github/workflows/pandoras_box.yml
+    name: Pandora's Box EOA
     needs: deploy_testnet
     secrets:
       SLACK_PERFORMANCE_WEBHOOK_URL: ${{ secrets.SLACK_PERFORMANCE_WEBHOOK_URL }}
@@ -168,21 +169,32 @@ jobs:
       environment: testnet
       transaction_batch: '200'
       transaction_count: '10000'
-
-  loadbot:
-    uses: ExzoNetwork/ExzoCoin/.github/workflows/loadbot.yml@develop
-    name: Loadbot
+      mode: EOA
+  pandoras_box_erc20:
+    uses: ./.github/workflows/pandoras_box.yml
+    name: Pandora's Box ERC20
     needs: deploy_testnet
     secrets:
       SLACK_PERFORMANCE_WEBHOOK_URL: ${{ secrets.SLACK_PERFORMANCE_WEBHOOK_URL }}
-      LOADBOT_JSONRPC_URL: ${{ secrets.LOADBOT_JSONRPC_URL }}
-      LOADBOT_SENDER_ADDRESS: ${{ secrets.LOADBOT_SENDER_ADDRESS }}
-      LOADBOT_GRPC_ADDRESS: ${{ secrets.LOADBOT_GRPC_ADDRESS }}
-      LOADBOT_0x1AB8C3df809b85012a009c0264eb92dB04eD6EFa: ${{ secrets.LOADBOT_0x1AB8C3df809b85012a009c0264eb92dB04eD6EFa }}
+      PANDORAS_TARGET: ${{ secrets.PANDORAS_TARGET }}
+      PANDORAS_MNEMONIC: ${{ secrets.PANDORAS_MNEMONIC }}
     with:
       runner: testnet
       environment: testnet
-      chain_id: '750'
-      transaction_value: '100'
+      transaction_batch: '200'
       transaction_count: '10000'
-      transactions_per_second: '100'
+      mode: ERC20
+  pandoras_box_erc721:
+    uses: ./.github/workflows/pandoras_box.yml
+    name: Pandora's Box ERC721
+    needs: deploy_testnet
+    secrets:
+      SLACK_PERFORMANCE_WEBHOOK_URL: ${{ secrets.SLACK_PERFORMANCE_WEBHOOK_URL }}
+      PANDORAS_TARGET: ${{ secrets.PANDORAS_TARGET }}
+      PANDORAS_MNEMONIC: ${{ secrets.PANDORAS_MNEMONIC }}
+    with:
+      runner: testnet
+      environment: testnet
+      transaction_batch: '200'
+      transaction_count: '10000'
+      mode: ERC721

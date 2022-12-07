@@ -10,7 +10,6 @@ import (
 
 	"github.com/ExzoNetwork/ExzoCoin/chain"
 	"github.com/ExzoNetwork/ExzoCoin/helper/common"
-	"github.com/ExzoNetwork/ExzoCoin/helper/hex"
 	"github.com/ExzoNetwork/ExzoCoin/helper/progress"
 	"github.com/ExzoNetwork/ExzoCoin/state"
 	"github.com/ExzoNetwork/ExzoCoin/state/runtime"
@@ -18,29 +17,34 @@ import (
 )
 
 type ethTxPoolStore interface {
-	// GetNonce returns the next nonce for this address
-	GetNonce(addr types.Address) uint64
-
 	// AddTx adds a new transaction to the tx pool
 	AddTx(tx *types.Transaction) error
 
 	// GetPendingTx gets the pending transaction from the transaction pool, if it's present
 	GetPendingTx(txHash types.Hash) (*types.Transaction, bool)
+
+	// GetNonce returns the next nonce for this address
+	GetNonce(addr types.Address) uint64
+}
+
+type Account struct {
+	Balance *big.Int
+	Nonce   uint64
 }
 
 type ethStateStore interface {
-	GetAccount(root types.Hash, addr types.Address) (*state.Account, error)
+	GetAccount(root types.Hash, addr types.Address) (*Account, error)
 	GetStorage(root types.Hash, addr types.Address, slot types.Hash) ([]byte, error)
 	GetForksInTime(blockNumber uint64) chain.ForksInTime
-	GetCode(hash types.Hash) ([]byte, error)
+	GetCode(root types.Hash, addr types.Address) ([]byte, error)
 }
 
 type ethBlockchainStore interface {
 	// Header returns the current header of the chain (genesis if empty)
 	Header() *types.Header
 
-	// GetHeaderByNumber returns the header by number
-	GetHeaderByNumber(block uint64) (*types.Header, bool)
+	// GetHeaderByNumber gets a header using the provided number
+	GetHeaderByNumber(uint64) (*types.Header, bool)
 
 	// GetBlockByHash gets a block using the provided hash
 	GetBlockByHash(hash types.Hash, full bool) (*types.Block, bool)
@@ -91,37 +95,14 @@ func (e *Eth) ChainId() (interface{}, error) {
 	return argUintPtr(e.chainID), nil
 }
 
-func (e *Eth) getHeaderFromBlockNumberOrHash(bnh *BlockNumberOrHash) (*types.Header, error) {
-	var (
-		header *types.Header
-		err    error
-	)
-
-	if bnh.BlockNumber != nil {
-		header, err = e.getBlockHeader(*bnh.BlockNumber)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get the header of block %d: %w", *bnh.BlockNumber, err)
-		}
-	} else if bnh.BlockHash != nil {
-		block, ok := e.store.GetBlockByHash(*bnh.BlockHash, false)
-		if !ok {
-			return nil, fmt.Errorf("could not find block referenced by the hash %s", bnh.BlockHash.String())
-		}
-
-		header = block.Header
-	}
-
-	return header, nil
-}
-
 func (e *Eth) Syncing() (interface{}, error) {
 	if syncProgression := e.store.GetSyncProgression(); syncProgression != nil {
 		// Node is bulk syncing, return the status
 		return progression{
 			Type:          string(syncProgression.SyncType),
-			StartingBlock: hex.EncodeUint64(syncProgression.StartingBlock),
-			CurrentBlock:  hex.EncodeUint64(syncProgression.CurrentBlock),
-			HighestBlock:  hex.EncodeUint64(syncProgression.HighestBlock),
+			StartingBlock: argUint64(syncProgression.StartingBlock),
+			CurrentBlock:  argUint64(syncProgression.CurrentBlock),
+			HighestBlock:  argUint64(syncProgression.HighestBlock),
 		}, nil
 	}
 
@@ -129,35 +110,14 @@ func (e *Eth) Syncing() (interface{}, error) {
 	return false, nil
 }
 
-func GetNumericBlockNumber(number BlockNumber, e *Eth) (uint64, error) {
-	switch number {
-	case LatestBlockNumber:
-		return e.store.Header().Number, nil
-
-	case EarliestBlockNumber:
-		return 0, nil
-
-	case PendingBlockNumber:
-		return 0, fmt.Errorf("fetching the pending header is not supported")
-
-	default:
-		if number < 0 {
-			return 0, fmt.Errorf("invalid argument 0: block number larger than int64")
-		}
-
-		return uint64(number), nil
-	}
-}
-
 // GetBlockByNumber returns information about a block by block number
 func (e *Eth) GetBlockByNumber(number BlockNumber, fullTx bool) (interface{}, error) {
-	num, err := GetNumericBlockNumber(number, e)
+	num, err := GetNumericBlockNumber(number, e.store)
 	if err != nil {
 		return nil, err
 	}
 
 	block, ok := e.store.GetBlockByNumber(num, true)
-
 	if !ok {
 		return nil, nil
 	}
@@ -176,7 +136,7 @@ func (e *Eth) GetBlockByHash(hash types.Hash, fullTx bool) (interface{}, error) 
 }
 
 func (e *Eth) GetBlockTransactionCountByNumber(number BlockNumber) (interface{}, error) {
-	num, err := GetNumericBlockNumber(number, e)
+	num, err := GetNumericBlockNumber(number, e.store)
 	if err != nil {
 		return nil, err
 	}
@@ -201,12 +161,7 @@ func (e *Eth) BlockNumber() (interface{}, error) {
 }
 
 // SendRawTransaction sends a raw transaction
-func (e *Eth) SendRawTransaction(input string) (interface{}, error) {
-	buf, decodeErr := hex.DecodeHex(input)
-	if decodeErr != nil {
-		return nil, fmt.Errorf("unable to decode input, %w", decodeErr)
-	}
-
+func (e *Eth) SendRawTransaction(buf argBytes) (interface{}, error) {
 	tx := &types.Transaction{}
 	if err := tx.UnmarshalRLP(buf); err != nil {
 		return nil, err
@@ -388,31 +343,22 @@ func (e *Eth) GetStorageAt(
 	index types.Hash,
 	filter BlockNumberOrHash,
 ) (interface{}, error) {
-	var (
-		header *types.Header
-		err    error
-	)
-
-	// The filter is empty, use the latest block by default
-	if filter.BlockNumber == nil && filter.BlockHash == nil {
-		filter.BlockNumber, _ = createBlockNumberPointer("latest")
-	}
-
-	header, err = e.getHeaderFromBlockNumberOrHash(&filter)
+	header, err := GetHeaderFromBlockNumberOrHash(filter, e.store)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get header from block hash or block number")
+		return nil, err
 	}
 
 	// Get the storage for the passed in location
 	result, err := e.store.GetStorage(header.StateRoot, address, index)
 	if err != nil {
-		//nolint:govet
-		if errors.As(err, &ErrStateNotFound) {
+		if errors.Is(err, ErrStateNotFound) {
 			return argBytesPtr(types.ZeroHash[:]), nil
 		}
 
 		return nil, err
 	}
+
+	// TODO: GetStorage should return the values already parsed
 
 	// Parse the RLP value
 	p := &fastrlp.Parser{}
@@ -433,33 +379,22 @@ func (e *Eth) GetStorageAt(
 
 // GasPrice returns the average gas price based on the last x blocks
 // taking into consideration operator defined price limit
-func (e *Eth) GasPrice() (string, error) {
+func (e *Eth) GasPrice() (interface{}, error) {
 	// Fetch average gas price in uint64
 	avgGasPrice := e.store.GetAvgGasPrice().Uint64()
 
 	// Return --price-limit flag defined value if it is greater than avgGasPrice
-	return hex.EncodeUint64(common.Max(e.priceLimit, avgGasPrice)), nil
+	return argUint64(common.Max(e.priceLimit, avgGasPrice)), nil
 }
 
 // Call executes a smart contract call using the transaction object data
 func (e *Eth) Call(arg *txnArgs, filter BlockNumberOrHash) (interface{}, error) {
-	var (
-		header *types.Header
-		err    error
-	)
-
-	// The filter is empty, use the latest block by default
-	if filter.BlockNumber == nil && filter.BlockHash == nil {
-		filter.BlockNumber, _ = createBlockNumberPointer("latest")
-	}
-
-	header, err = e.getHeaderFromBlockNumberOrHash(&filter)
+	header, err := GetHeaderFromBlockNumberOrHash(filter, e.store)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get header from block hash or block number")
+		return nil, err
 	}
 
-	transaction, err := e.decodeTxn(arg)
-
+	transaction, err := DecodeTxn(arg, e.store)
 	if err != nil {
 		return nil, err
 	}
@@ -488,7 +423,7 @@ func (e *Eth) Call(arg *txnArgs, filter BlockNumberOrHash) (interface{}, error) 
 
 // EstimateGas estimates the gas needed to execute a transaction
 func (e *Eth) EstimateGas(arg *txnArgs, rawNum *BlockNumber) (interface{}, error) {
-	transaction, err := e.decodeTxn(arg)
+	transaction, err := DecodeTxn(arg, e.store)
 	if err != nil {
 		return nil, err
 	}
@@ -499,7 +434,7 @@ func (e *Eth) EstimateGas(arg *txnArgs, rawNum *BlockNumber) (interface{}, error
 	}
 
 	// Fetch the requested header
-	header, err := e.getBlockHeader(number)
+	header, err := GetBlockHeader(number, e.store)
 	if err != nil {
 		return nil, err
 	}
@@ -540,8 +475,7 @@ func (e *Eth) EstimateGas(arg *txnArgs, rawNum *BlockNumber) (interface{}, error
 		accountBalance := big.NewInt(0)
 		acc, err := e.store.GetAccount(header.StateRoot, transaction.From)
 
-		//nolint:govet
-		if err != nil && !errors.As(err, &ErrStateNotFound) {
+		if err != nil && !errors.Is(err, ErrStateNotFound) {
 			// An unrelated error occurred, return it
 			return nil, err
 		} else if err == nil {
@@ -584,8 +518,7 @@ func (e *Eth) EstimateGas(arg *txnArgs, rawNum *BlockNumber) (interface{}, error
 	// Checks if executor level valid gas errors occurred
 	isGasApplyError := func(err error) bool {
 		// Not linting this as the underlying error is actually wrapped
-		//nolint:govet
-		return errors.As(err, &state.ErrNotEnoughIntrinsicGas)
+		return errors.Is(err, state.ErrNotEnoughIntrinsicGas)
 	}
 
 	// Checks if EVM level valid gas errors occurred
@@ -674,7 +607,7 @@ func (e *Eth) EstimateGas(arg *txnArgs, rawNum *BlockNumber) (interface{}, error
 		)
 	}
 
-	return hex.EncodeUint64(highEnd), nil
+	return argUint64(highEnd), nil
 }
 
 // GetFilterLogs returns an array of logs for the specified filter
@@ -694,25 +627,14 @@ func (e *Eth) GetLogs(query *LogQuery) (interface{}, error) {
 
 // GetBalance returns the account's balance at the referenced block.
 func (e *Eth) GetBalance(address types.Address, filter BlockNumberOrHash) (interface{}, error) {
-	var (
-		header *types.Header
-		err    error
-	)
-
-	// The filter is empty, use the latest block by default
-	if filter.BlockNumber == nil && filter.BlockHash == nil {
-		filter.BlockNumber, _ = createBlockNumberPointer("latest")
-	}
-
-	header, err = e.getHeaderFromBlockNumberOrHash(&filter)
+	header, err := GetHeaderFromBlockNumberOrHash(filter, e.store)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get header from block hash or block number")
+		return nil, err
 	}
 
 	// Extract the account balance
 	acc, err := e.store.GetAccount(header.StateRoot, address)
-	//nolint:govet
-	if errors.As(err, &ErrStateNotFound) {
+	if errors.Is(err, ErrStateNotFound) {
 		// Account not found, return an empty account
 		return argUintPtr(0), nil
 	} else if err != nil {
@@ -736,9 +658,9 @@ func (e *Eth) GetTransactionCount(address types.Address, filter BlockNumberOrHas
 	}
 
 	if filter.BlockNumber == nil {
-		header, err = e.getHeaderFromBlockNumberOrHash(&filter)
+		header, err = GetHeaderFromBlockNumberOrHash(filter, e.store)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get header from block hash or block number")
+			return nil, fmt.Errorf("failed to get header from block hash or block number: %w", err)
 		}
 
 		blockNumber = BlockNumber(header.Number)
@@ -746,7 +668,7 @@ func (e *Eth) GetTransactionCount(address types.Address, filter BlockNumberOrHas
 		blockNumber = *filter.BlockNumber
 	}
 
-	nonce, err := e.getNextNonce(address, blockNumber)
+	nonce, err := GetNextNonce(address, blockNumber, e.store)
 	if err != nil {
 		if errors.Is(err, ErrStateNotFound) {
 			return argUintPtr(0), nil
@@ -760,37 +682,20 @@ func (e *Eth) GetTransactionCount(address types.Address, filter BlockNumberOrHas
 
 // GetCode returns account code at given block number
 func (e *Eth) GetCode(address types.Address, filter BlockNumberOrHash) (interface{}, error) {
-	var (
-		header *types.Header
-		err    error
-	)
-
-	// The filter is empty, use the latest block by default
-	if filter.BlockNumber == nil && filter.BlockHash == nil {
-		filter.BlockNumber, _ = createBlockNumberPointer("latest")
-	}
-
-	header, err = e.getHeaderFromBlockNumberOrHash(&filter)
+	header, err := GetHeaderFromBlockNumberOrHash(filter, e.store)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get header from block hash or block number")
+		return nil, err
 	}
 
 	emptySlice := []byte{}
-	acc, err := e.store.GetAccount(header.StateRoot, address)
+	code, err := e.store.GetCode(header.StateRoot, address)
 
-	//nolint:govet
-	if errors.As(err, &ErrStateNotFound) {
+	if errors.Is(err, ErrStateNotFound) {
 		// If the account doesn't exist / is not initialized yet,
 		// return the default value
 		return "0x", nil
 	} else if err != nil {
 		return argBytesPtr(emptySlice), err
-	}
-
-	code, err := e.store.GetCode(types.BytesToHash(acc.CodeHash))
-	if err != nil {
-		// TODO This is just a workaround. Figure out why CodeHash is populated for regular accounts
-		return argBytesPtr(emptySlice), nil
 	}
 
 	return argBytesPtr(code), nil
@@ -819,122 +724,4 @@ func (e *Eth) UninstallFilter(id string) (bool, error) {
 // Unsubscribe uninstalls a filter in a websocket
 func (e *Eth) Unsubscribe(id string) (bool, error) {
 	return e.filterManager.Uninstall(id), nil
-}
-
-func (e *Eth) getBlockHeader(number BlockNumber) (*types.Header, error) {
-	switch number {
-	case LatestBlockNumber:
-		return e.store.Header(), nil
-
-	case EarliestBlockNumber:
-		header, ok := e.store.GetHeaderByNumber(uint64(0))
-		if !ok {
-			return nil, fmt.Errorf("error fetching genesis block header")
-		}
-
-		return header, nil
-
-	case PendingBlockNumber:
-		return nil, fmt.Errorf("fetching the pending header is not supported")
-
-	default:
-		// Convert the block number from hex to uint64
-		header, ok := e.store.GetHeaderByNumber(uint64(number))
-		if !ok {
-			return nil, fmt.Errorf("error fetching block number %d header", uint64(number))
-		}
-
-		return header, nil
-	}
-}
-
-// getNextNonce returns the next nonce for the account for the specified block
-func (e *Eth) getNextNonce(address types.Address, number BlockNumber) (uint64, error) {
-	if number == PendingBlockNumber {
-		// Grab the latest pending nonce from the TxPool
-		//
-		// If the account is not initialized in the local TxPool,
-		// return the latest nonce from the world state
-		res := e.store.GetNonce(address)
-
-		return res, nil
-	}
-
-	header, err := e.getBlockHeader(number)
-	if err != nil {
-		return 0, err
-	}
-
-	acc, err := e.store.GetAccount(header.StateRoot, address)
-
-	//nolint:govet
-	if errors.As(err, &ErrStateNotFound) {
-		// If the account doesn't exist / isn't initialized,
-		// return a nonce value of 0
-		return 0, nil
-	} else if err != nil {
-		return 0, err
-	}
-
-	return acc.Nonce, nil
-}
-
-func (e *Eth) decodeTxn(arg *txnArgs) (*types.Transaction, error) {
-	// set default values
-	if arg.From == nil {
-		arg.From = &types.ZeroAddress
-		arg.Nonce = argUintPtr(0)
-	} else if arg.Nonce == nil {
-		// get nonce from the pool
-		nonce, err := e.getNextNonce(*arg.From, LatestBlockNumber)
-		if err != nil {
-			return nil, err
-		}
-		arg.Nonce = argUintPtr(nonce)
-	}
-
-	if arg.Value == nil {
-		arg.Value = argBytesPtr([]byte{})
-	}
-
-	if arg.GasPrice == nil {
-		arg.GasPrice = argBytesPtr([]byte{})
-	}
-
-	var input []byte
-	if arg.Data != nil {
-		input = *arg.Data
-	} else if arg.Input != nil {
-		input = *arg.Input
-	}
-
-	if arg.To == nil {
-		if input == nil {
-			return nil, fmt.Errorf("contract creation without data provided")
-		}
-	}
-
-	if input == nil {
-		input = []byte{}
-	}
-
-	if arg.Gas == nil {
-		arg.Gas = argUintPtr(0)
-	}
-
-	txn := &types.Transaction{
-		From:     *arg.From,
-		Gas:      uint64(*arg.Gas),
-		GasPrice: new(big.Int).SetBytes(*arg.GasPrice),
-		Value:    new(big.Int).SetBytes(*arg.Value),
-		Input:    input,
-		Nonce:    uint64(*arg.Nonce),
-	}
-	if arg.To != nil {
-		txn.To = arg.To
-	}
-
-	txn.ComputeHash()
-
-	return txn, nil
 }

@@ -46,7 +46,7 @@ func getIndexWithOffset(keccakHash []byte, offset uint64) []byte {
 // of the storage slots which need to be modified during bootstrap.
 //
 // It is SC dependant, and based on the SC located at:
-// https://github.dev/ExzoNetwork/staking-contracts/
+// https://github.com/0xPolygon/staking-contracts/
 func getStorageIndexes(validator validators.Validator, index int) *StorageIndexes {
 	storageIndexes := &StorageIndexes{}
 	address := validator.Addr()
@@ -169,7 +169,7 @@ func PredeployStakingSC(
 	params PredeployParams,
 ) (*chain.GenesisAccount, error) {
 	// Set the code for the staking smart contract
-	// Code retrieved from https://github.dev/ExzoNetwork/staking-contracts
+	// Code retrieved from https://github.com/topdefi/staking-contracts
 	scHex, _ := hex.DecodeHex(StakingSCBytecode)
 	stakingAccount := &chain.GenesisAccount{
 		Code: scHex,

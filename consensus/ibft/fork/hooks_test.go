@@ -12,7 +12,6 @@ import (
 	stakingHelper "github.com/ExzoNetwork/ExzoCoin/helper/staking"
 	"github.com/ExzoNetwork/ExzoCoin/state"
 	itrie "github.com/ExzoNetwork/ExzoCoin/state/immutable-trie"
-	"github.com/ExzoNetwork/ExzoCoin/state/runtime/evm"
 	"github.com/ExzoNetwork/ExzoCoin/types"
 	"github.com/ExzoNetwork/ExzoCoin/validators"
 	"github.com/ExzoNetwork/ExzoCoin/validators/store"
@@ -283,8 +282,6 @@ func newTestTransition(
 	}, st, hclog.NewNullLogger())
 
 	rootHash := ex.WriteGenesis(nil)
-
-	ex.SetRuntime(evm.NewEVM())
 	ex.GetHash = func(h *types.Header) state.GetHashByNumber {
 		return func(i uint64) types.Hash {
 			return rootHash

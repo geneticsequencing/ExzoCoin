@@ -12,5 +12,6 @@ updates:
     pull-request-branch-name:
       separator: "-"
     reviewers:
-      - "exzonetwork"
-      - "topdefi"
+      - "lazartravica"
+      - "Kourin1996"
+      - "zivkovicmilos"

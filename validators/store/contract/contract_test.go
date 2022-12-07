@@ -11,7 +11,6 @@ import (
 	testHelper "github.com/ExzoNetwork/ExzoCoin/helper/tests"
 	"github.com/ExzoNetwork/ExzoCoin/state"
 	itrie "github.com/ExzoNetwork/ExzoCoin/state/immutable-trie"
-	"github.com/ExzoNetwork/ExzoCoin/state/runtime/evm"
 	"github.com/ExzoNetwork/ExzoCoin/types"
 	"github.com/ExzoNetwork/ExzoCoin/validators"
 	"github.com/ExzoNetwork/ExzoCoin/validators/store"
@@ -87,7 +86,6 @@ func newTestTransition(
 
 	rootHash := ex.WriteGenesis(nil)
 
-	ex.SetRuntime(evm.NewEVM())
 	ex.GetHash = func(h *types.Header) state.GetHashByNumber {
 		return func(i uint64) types.Hash {
 			return rootHash
@@ -475,21 +473,26 @@ func TestContractValidatorStore_CacheChange(t *testing.T) {
 		)
 	)
 
-	testCache := func(t *testing.T, expectedCache map[uint64]validators.Validators) {
+	type testCase struct {
+		height   uint64
+		expected validators.Validators
+	}
+
+	testCache := func(t *testing.T, testCases ...testCase) {
 		t.Helper()
 
-		assert.Equal(t, len(expectedCache), store.validatorSetCache.Len())
+		assert.Equal(t, len(testCases), store.validatorSetCache.Len())
 
-		for height, expected := range expectedCache {
-			cache, ok := store.validatorSetCache.Get(height)
+		for _, testCase := range testCases {
+			cache, ok := store.validatorSetCache.Get(testCase.height)
 
-			assert.Truef(t, ok, "validators for %d must exist, but not found")
-			assert.Equal(t, expected, cache)
+			assert.Truef(t, ok, "validators at %d must exist, but not found", testCase.height)
+			assert.Equal(t, testCase.expected, cache)
 		}
 	}
 
 	// initial cache is empty
-	testCache(t, nil)
+	testCache(t)
 
 	// overflow doesn't occur
 	assert.False(
@@ -497,19 +500,21 @@ func TestContractValidatorStore_CacheChange(t *testing.T) {
 		store.saveToValidatorSetCache(0, ecdsaValidators1),
 	)
 
-	testCache(t, map[uint64]validators.Validators{
-		0: ecdsaValidators1,
-	})
+	testCache(
+		t,
+		testCase{height: 0, expected: ecdsaValidators1},
+	)
 
 	assert.False(
 		t,
 		store.saveToValidatorSetCache(1, ecdsaValidators2),
 	)
 
-	testCache(t, map[uint64]validators.Validators{
-		0: ecdsaValidators1,
-		1: ecdsaValidators2,
-	})
+	testCache(
+		t,
+		testCase{height: 0, expected: ecdsaValidators1},
+		testCase{height: 1, expected: ecdsaValidators2},
+	)
 
 	// make sure ecdsaValidators2 is loaded at the end for LRU cache
 	store.validatorSetCache.Get(1)
@@ -520,10 +525,11 @@ func TestContractValidatorStore_CacheChange(t *testing.T) {
 		store.saveToValidatorSetCache(2, blsValidators),
 	)
 
-	testCache(t, map[uint64]validators.Validators{
-		1: ecdsaValidators2,
-		2: blsValidators,
-	})
+	testCache(
+		t,
+		testCase{height: 1, expected: ecdsaValidators2},
+		testCase{height: 2, expected: blsValidators},
+	)
 }
 
 func TestContractValidatorStore_NoCache(t *testing.T) {

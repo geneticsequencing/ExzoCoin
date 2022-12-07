@@ -4,8 +4,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ExzoNetwork/ExzoCoin/helper/hex"
-	"github.com/ExzoNetwork/ExzoCoin/state"
 	"github.com/ExzoNetwork/ExzoCoin/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +19,7 @@ func TestEth_TxnPool_SendRawTransaction(t *testing.T) {
 	txn.ComputeHash()
 
 	data := txn.MarshalRLP()
-	_, err := eth.SendRawTransaction(hex.EncodeToHex(data))
+	_, err := eth.SendRawTransaction(data)
 	assert.NoError(t, err)
 	assert.NotEqual(t, store.txn.Hash, types.ZeroHash)
 
@@ -43,7 +41,7 @@ func TestEth_TxnPool_SendTransaction(t *testing.T) {
 		GasPrice: big.NewInt(int64(1)),
 	}
 
-	_, err := eth.SendRawTransaction(hex.EncodeToHex(txToSend.MarshalRLP()))
+	_, err := eth.SendRawTransaction(txToSend.MarshalRLP())
 	assert.NoError(t, err)
 	assert.NotEqual(t, store.txn.Hash, types.ZeroHash)
 }
@@ -63,6 +61,7 @@ func (m *mockStoreTxn) AddTx(tx *types.Transaction) error {
 func (m *mockStoreTxn) GetNonce(addr types.Address) uint64 {
 	return 1
 }
+
 func (m *mockStoreTxn) AddAccount(addr types.Address) *mockAccount {
 	if m.accounts == nil {
 		m.accounts = map[types.Address]*mockAccount{}
@@ -70,7 +69,7 @@ func (m *mockStoreTxn) AddAccount(addr types.Address) *mockAccount {
 
 	acct := &mockAccount{
 		address: addr,
-		account: &state.Account{},
+		account: &Account{},
 		storage: make(map[types.Hash][]byte),
 	}
 	m.accounts[addr] = acct
@@ -82,7 +81,7 @@ func (m *mockStoreTxn) Header() *types.Header {
 	return &types.Header{}
 }
 
-func (m *mockStoreTxn) GetAccount(root types.Hash, addr types.Address) (*state.Account, error) {
+func (m *mockStoreTxn) GetAccount(root types.Hash, addr types.Address) (*Account, error) {
 	acct, ok := m.accounts[addr]
 	if !ok {
 		return nil, ErrStateNotFound

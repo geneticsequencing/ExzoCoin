@@ -1,4 +1,4 @@
-project_name: ExzoNetwork
+project_name: exzocoin
 
 release:
   disable: false
@@ -69,13 +69,11 @@ archives:
     files:
       - LICENSE
       - README.md
-      - src: mainnet-genesis.json
-        dst: genesis.json
 
 #nfpms:
 #  - vendor: ExzoNetwork
-#    homepage: https://polygon.technology
-#    maintainer: Polygon Edge Team <edge@polygon.technology>
+#    homepage: https://exzo.network
+#    maintainer: ExzoCoin Edge Team <support@exzo.network>
 #    description:  A Framework for Building Ethereum-compatible Blockchain Networks
 #    license: GPLv3 LGPLv3
 #
@@ -131,4 +129,4 @@ docker_manifests:
     image_templates:
       - ExzoNetwork/{{ .ProjectName }}:{{ .Version }}-amd64
       - ExzoNetwork/{{ .ProjectName }}:{{ .Version }}-arm64
-    skip_push: false
+    skip_push: auto

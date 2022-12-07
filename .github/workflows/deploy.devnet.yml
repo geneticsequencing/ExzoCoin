@@ -15,17 +15,18 @@ permissions:
 jobs:
   snyk:
     name: Snyk and Publish
-    uses: ExzoNetwork/ExzoCoin/.github/workflows/security.yml@develop
+    uses: ./.github/workflows/security.yml
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      SNYK_ORG: ${{ secrets.SNYK_ORG }}
 
   build:
     name: Build
-    uses: ExzoNetwork/ExzoCoin/.github/workflows/build.yml@develop
+    uses: ./.github/workflows/build.yml
 
   test:
     name: Test
-    uses: ExzoNetwork/ExzoCoin/.github/workflows/test.yml@develop
+    uses: ./.github/workflows/test.yml
     needs: build
 
   deploy_devnet:
@@ -90,7 +91,7 @@ jobs:
           echo "--------------------"
 
           # Should finish relatively fast. Can add a check to guard against pre-mature cycle
-          echo "Cleaning up the data directories and stopping exzocoin Devnet service..."
+          echo "Cleaning up the data directories and stopping Polygon-Edge Devnet service..."
           aws ssm send-command --document-name exzocoin-validators-maintenance-clean-data --targets Key=tag:aws:autoscaling:groupName,Values=$VALIDATOR_ASGS >> /dev/null
 
           for vasg in ${VALIDATOR_ASGS//,/ }
@@ -164,3 +165,46 @@ jobs:
                 }
               ]
             }
+
+  pandoras_box_eoa:
+    uses: ./.github/workflows/pandoras_box.yml
+    name: Pandora's Box EOA
+    needs: deploy_devnet
+    secrets:
+      SLACK_PERFORMANCE_WEBHOOK_URL: ${{ secrets.SLACK_PERFORMANCE_WEBHOOK_URL }}
+      PANDORAS_TARGET: ${{ secrets.PANDORAS_TARGET }}
+      PANDORAS_MNEMONIC: ${{ secrets.PANDORAS_MNEMONIC }}
+    with:
+      runner: devnet
+      environment: devnet
+      transaction_batch: '200'
+      transaction_count: '10000'
+      mode: EOA
+  pandoras_box_erc20:
+    uses: ./.github/workflows/pandoras_box.yml
+    name: Pandora's Box ERC20
+    needs: deploy_devnet
+    secrets:
+      SLACK_PERFORMANCE_WEBHOOK_URL: ${{ secrets.SLACK_PERFORMANCE_WEBHOOK_URL }}
+      PANDORAS_TARGET: ${{ secrets.PANDORAS_TARGET }}
+      PANDORAS_MNEMONIC: ${{ secrets.PANDORAS_MNEMONIC }}
+    with:
+      runner: devnet
+      environment: devnet
+      transaction_batch: '200'
+      transaction_count: '10000'
+      mode: ERC20
+  pandoras_box_erc721:
+    uses: ./.github/workflows/pandoras_box.yml
+    name: Pandora's Box ERC721
+    needs: deploy_devnet
+    secrets:
+      SLACK_PERFORMANCE_WEBHOOK_URL: ${{ secrets.SLACK_PERFORMANCE_WEBHOOK_URL }}
+      PANDORAS_TARGET: ${{ secrets.PANDORAS_TARGET }}
+      PANDORAS_MNEMONIC: ${{ secrets.PANDORAS_MNEMONIC }}
+    with:
+      runner: devnet
+      environment: devnet
+      transaction_batch: '200'
+      transaction_count: '10000'
+      mode: ERC721
