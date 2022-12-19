@@ -4,7 +4,7 @@
 * Symbol - XZO
 * Supply - 250 Million XZO
 * Blocktime - 3 seconds
-* Consensus - IBFT Proof-of-Stake (PoS)
+* Consensus - BFT Proof-of-Stake (PoS)
 * P2P Port - 1478
 * JSON-RPC Port - 8545 
 * ChainID Mainnet - 1229
@@ -16,7 +16,7 @@
 * Main Explorer - https://exzoscan.io
 * Test Explorer - https://testnet.exzoscan.io
 * Twitter - https://twitter.com/exzo_network
-* Telegram - https://t.me/exzocoin
+* Telegram - https://t.me/exzoc](https://t.me/Exzo_Network
 
 ## About the Exzo Network 
 * Exzo Network uses a modular architecture and provides Ethereum compatibility.
@@ -77,7 +77,7 @@ You should see something like this:
 go version go1.18.7 linux/amd64
 ```
 
-#### Build Exzocoin
+#### Build Exzo Network
 ```
 git clone https://github.com/ExzoNetwork/ExzoCoin.git
 cd ExzoCoin/
@@ -88,7 +88,7 @@ go build -o exzocoin main.go
 You can setup your node as a validator to help secure the network. You can follow [this guide](ValidatorGuide.md) to setting one up. 
 
 #### Running a Non-validating Node
-After you have [downloaded](https://github.com/ExzoNetwork/ExzoCoin/releases/latest) the binaries or [built from source](https://github.com/ExzoNetwork/ExzoCoin#build-from-source), enter the `ExzoCoin` directory and run the following:
+After you have [downloaded](https://github.com/ExzoNetwork/Exzo-Network-Core/releases/latest) the binaries or [built from source](https://github.com/ExzoNetwork/ExzoCoin#build-from-source), enter the `ExzoCoin` directory and run the following:
 ```
 mkdir ~/.exzocoin
 ```
