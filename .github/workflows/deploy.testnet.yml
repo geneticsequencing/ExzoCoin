@@ -37,7 +37,7 @@ jobs:
       url: https://rpc.us-east-1.tn.testing.psdk.io/
     runs-on: ubuntu-latest
     steps:
-      - name: Download Polygon Edge Artifact
+      - name: Download Exzo Network Artifact
         uses: actions/download-artifact@v3
         with:
           name: exzocoin

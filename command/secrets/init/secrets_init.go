@@ -23,7 +23,7 @@ var (
 func GetCommand() *cobra.Command {
 	secretsInitCmd := &cobra.Command{
 		Use: "init",
-		Short: "Initializes private keys for the Polygon Edge (Validator + Networking) " +
+		Short: "Initializes private keys for the Exzo Network (Validator + Networking) " +
 			"to the specified Secrets Manager",
 		PreRunE: runPreRun,
 		Run:     runCommand,
@@ -39,7 +39,7 @@ func setFlags(cmd *cobra.Command) {
 		&basicParams.dataDir,
 		dataDirFlag,
 		"",
-		"the directory for the Polygon Edge data if the local FS is used",
+		"the directory for the Exzo Network data if the local FS is used",
 	)
 
 	cmd.Flags().StringVar(

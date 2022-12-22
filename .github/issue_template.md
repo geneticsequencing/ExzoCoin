@@ -4,8 +4,8 @@ Describe your issue in as much detail as possible here.
 
 ## Your environment
 - OS and version.
-- The version of the Polygon Edge.    
-  (*Confirm the version of your Polygon edge client by running the following command: `exzocoin version --grpc-address GRPC_ADDRESS`*)
+- The version of the Exzo Network.    
+  (*Confirm the version of your Exzo Network client by running the following command: `exzocoin version --grpc-address GRPC_ADDRESS`*)
 - The branch that causes this issue.
 - Locally or Cloud hosted (which provider).
 - Please confirm if the validators are running under containerized environment (K8s, Docker, etc.).

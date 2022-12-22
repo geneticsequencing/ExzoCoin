@@ -10,7 +10,7 @@ import (
 func GetCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "license",
-		Short: "Returns Polygon Edge license and dependency attributions",
+		Short: "Returns Exzo Network license and dependency attributions",
 		Args:  cobra.NoArgs,
 		Run:   runCommand,
 	}

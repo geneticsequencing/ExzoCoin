@@ -36,7 +36,7 @@ The Exzo Network Token (XZO) features the following utilities, and the value of 
 
 Cross-Chain Communication
 * Completely trustless and decentralized built-in Ethereum Bridge solution.
-* Transfer assets to and from any EVM compatible network, most notably Polygon and Ethereum mainnets.
+* Transfer assets to and from any EVM compatible network, most notably Exzo Network and Ethereum mainnets.
 * Transfer ERC-20 tokens, NFTs or wrapped native currencies.
 * Customize the bridge functionality using Bridge plugins.
 

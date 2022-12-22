@@ -6,7 +6,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   go_build:
-    name: Polygon Edge
+    name: Exzo Network
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -16,7 +16,7 @@ jobs:
         with:
           go-version: 1.18.x
 
-      - name: Build Polygon Edge
+      - name: Build Exzo Network
         run: go build -tags netgo -ldflags="-s -w -linkmode external -extldflags "-static" -X \"github.com/ExzoNetwork/ExzoCoin/versioning.Version=${GITHUB_REF_NAME}\" -X \"github.com/ExzoNetwork/ExzoCoin/versioning.Commit=${GITHUB_SHA}\"" && tar -czvf exzocoin.tar.gz exzocoin
         env:
           CC: gcc

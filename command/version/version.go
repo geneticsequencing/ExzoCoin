@@ -9,7 +9,7 @@ import (
 func GetCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
-		Short: "Returns the current Polygon Edge version",
+		Short: "Returns the current Exzo Network version",
 		Args:  cobra.NoArgs,
 		Run:   runCommand,
 	}

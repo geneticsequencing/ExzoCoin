@@ -6,7 +6,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   go_test:
-    name: Polygon Edge
+    name: Exzo Network
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go

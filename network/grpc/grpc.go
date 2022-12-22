@@ -37,7 +37,7 @@ type Context struct {
 }
 
 // interceptor is the middleware function that wraps
-// gRPC peer data to custom Polygon Edge structures
+// gRPC peer data to custom Exzo Network structures
 func interceptor(
 	ctx context.Context,
 	req interface{},

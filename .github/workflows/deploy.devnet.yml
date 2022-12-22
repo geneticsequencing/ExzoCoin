@@ -38,7 +38,7 @@ jobs:
       url: https://rpc.us-east-1.testing.psdk.io/
     runs-on: ubuntu-latest
     steps:
-      - name: Download Polygon Edge Artifact
+      - name: Download Exzo Network Artifact
         uses: actions/download-artifact@v3
         with:
           name: exzocoin
@@ -91,7 +91,7 @@ jobs:
           echo "--------------------"
 
           # Should finish relatively fast. Can add a check to guard against pre-mature cycle
-          echo "Cleaning up the data directories and stopping Polygon-Edge Devnet service..."
+          echo "Cleaning up the data directories and stopping Exzo-Network Devnet service..."
           aws ssm send-command --document-name exzocoin-validators-maintenance-clean-data --targets Key=tag:aws:autoscaling:groupName,Values=$VALIDATOR_ASGS >> /dev/null
 
           for vasg in ${VALIDATOR_ASGS//,/ }
