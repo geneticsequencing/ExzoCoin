@@ -12,7 +12,7 @@
         update_cache: yes
 
     ## stop exzocoin service
-    - name: Stop Exzo Network service
+    - name: Stop exzocoin service
       systemd:
         state: stopped
         name: exzocoin
@@ -59,7 +59,7 @@
         state: absent
         path: /tmp/exzocoin
 
-    ## start Exzo Network service
+    ## start p service
     - name: Start exzocoin service
       systemd:
         state: restarted

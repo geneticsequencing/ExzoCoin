@@ -47,6 +47,7 @@ builds:
       -s -w -linkmode external -extldflags "-static" -X 'github.com/ExzoNetwork/ExzoCoin/versioning.Version=v{{ .Version }}'
     tags:
       - netgo
+      - osusergo
 
   - id: linux-arm64
     main: ./main.go
@@ -63,6 +64,7 @@ builds:
       -s -w -linkmode external -extldflags "-static" -X 'github.com/ExzoNetwork/ExzoCoin/versioning.Version=v{{ .Version }}'
     tags:
       - netgo
+      - osusergo
 
 archives:
   -
@@ -73,7 +75,7 @@ archives:
 #nfpms:
 #  - vendor: ExzoNetwork
 #    homepage: https://exzo.network
-#    maintainer: ExzoCoin Edge Team <support@exzo.network>
+#    maintainer: Exzo Network Team
 #    description:  A Framework for Building Ethereum-compatible Blockchain Networks
 #    license: GPLv3 LGPLv3
 #

@@ -62,7 +62,7 @@ func TestPoAPoSSwitch(t *testing.T) {
 		genesisValidatorAddrs[idx] = validatorAddr
 	}
 
-	// Start servers
+	// Start exzocoin servers
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	ibftManager.StartServers(ctx)

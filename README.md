@@ -2,9 +2,9 @@
 **Chain Specs**
 * Native Token Name - Exzo
 * Symbol - XZO
-* Supply - 250 Million XZO
+* Supply - 250 Million
 * Blocktime - 3 seconds
-* Consensus - BFT Proof-of-Stake (PoS)
+* Consensus - IBFT Proof-of-Stake (PoS)
 * P2P Port - 1478
 * JSON-RPC Port - 8545 
 * ChainID Mainnet - 1229
@@ -16,7 +16,8 @@
 * Main Explorer - https://exzoscan.io
 * Test Explorer - https://testnet.exzoscan.io
 * Twitter - https://twitter.com/exzo_network
-* Telegram - https://t.me/exzoc](https://t.me/Exzo_Network
+* Telegram - https://t.me/Exzo_Network
+* Telegram - https://t.me/exzoc
 
 ## About the Exzo Network 
 * Exzo Network uses a modular architecture and provides Ethereum compatibility.
