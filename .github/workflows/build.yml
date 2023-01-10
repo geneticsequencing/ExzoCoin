@@ -1,0 +1,63 @@
+---
+name: Build
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  go_build:
+    name: Exzo Network
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Go environment
+        uses: actions/setup-go@v3.3.0
+        with:
+          go-version: 1.18.x
+
+      - name: Build Exzo Network
+        run: go build -tags netgo -ldflags="-s -w -linkmode external -extldflags "-static" -X \"github.com/ExzoNetwork/ExzoCoin/versioning.Version=${GITHUB_REF_NAME}\" -X \"github.com/ExzoNetwork/ExzoCoin/versioning.Commit=${GITHUB_SHA}\"" && tar -czvf exzocoin.tar.gz exzocoin
+        env:
+          CC: gcc
+          CXX: g++
+          GOARC: amd64
+          GOOS: linux
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: exzocoin
+          path: exzocoin.tar.gz
+          retention-days: 3
+
+  go_build_reproducibility:
+    name: Verify Build Reproducibility
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Go environment
+        uses: actions/setup-go@v3.3.0
+        with:
+          go-version: 1.18.x
+
+      - name: 'Reproduce builds'
+        continue-on-error: true
+        run: |
+          go build -o ./edge-1 -trimpath -buildvcs=false
+          go build -o ./edge-2 -trimpath -buildvcs=false
+
+          buildsha1=$(shasum -a256 ./edge-1 | awk '{print $1}')
+          buildsha2=$(shasum -a256 ./edge-2 | awk '{print $1}')
+
+          echo "Build 1 SHA: $buildsha1"
+          echo "Build 2 SHA: $buildsha2"
+
+          if [ "$buildsha1" != "$buildsha2" ]; then
+            echo "Build artifact does not match original"
+            exit 1
+          else
+            echo "Build artifact matches original"
+          fi
