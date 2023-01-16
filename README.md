@@ -2,8 +2,8 @@
 **Chain Specs**
 * Native Token Name - Exzo
 * Symbol - XZO
-* Supply - 250 Million
-* Blocktime - 3 seconds
+* Supply - 50 Million
+* Blocktime - ~1-3 seconds
 * Consensus - IBFT Proof-of-Stake (PoS)
 * P2P Port - 1478
 * JSON-RPC Port - 8545 
